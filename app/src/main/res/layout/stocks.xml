@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:id="@+id/lay_stock"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/space_stock_96"
+    android:background="@drawable/roundrectangle"
+    >
+
+    <TextView
+        android:id="@+id/tv_ticker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="@dimen/spacing_small_8"
+        android:layout_marginTop="@dimen/spacing_small_8"
+        android:textStyle="bold"
+        android:text="AAPL"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/spacing_large_24" />
+
+    <TextView
+        android:id="@+id/tv_company_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_ticker"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="@dimen/spacing_small_8"
+        android:layout_marginTop="@dimen/spacing_tiny_4"
+        android:text="Apple inc."
+        android:textColor="@android:color/black" />
+
+    <ImageButton
+        android:id="@+id/btn_favourite"
+        android:layout_width="@dimen/spacing_huge_32"
+        android:layout_height="@dimen/spacing_huge_32"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="@dimen/spacing_tiny_4"
+        android:layout_marginTop="@dimen/spacing_small_8"
+        android:layout_toEndOf="@+id/tv_ticker"
+        android:background="@drawable/ic_baseline_star_favourite_40" />
+
+    <TextView
+        android:id="@+id/tv_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="@dimen/spacing_small_8"
+        android:layout_marginEnd="@dimen/spacing_small_8"
+        android:text="$56456,24"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/spacing_large_24" />
+
+    <TextView
+        android:id="@+id/tv_price_change"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_price"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="@dimen/spacing_tiny_4"
+        android:layout_marginEnd="@dimen/spacing_small_8"
+        android:text="+$253,54(0,15%)"
+        android:textColor="@color/colorIncreasePriceGreen"/>
+
+</RelativeLayout>

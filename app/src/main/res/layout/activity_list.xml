@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.ListActivity"
+    android:orientation="vertical">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/search_spacing_54"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/spacing_small_8"
+        android:background="@drawable/roundrectangleforsearch"
+        android:layout_marginStart="@dimen/spacing_small_8"
+        android:layout_marginEnd="@dimen/spacing_small_8">
+
+        <ImageView
+            android:layout_width="@dimen/btn_round_size_40"
+            android:layout_height="@dimen/btn_round_size_40"
+            android:layout_marginStart="@dimen/font_normal_16"
+            android:background="@drawable/ic_baseline_search_40"/>
+
+        <EditText
+            android:id="@+id/etd_search"
+            android:hint="Find company or ticker"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/spacing_giant_40"
+            android:layout_marginStart="@dimen/spacing_normal_16"
+            android:layout_marginEnd="@dimen/spacing_normal_16"
+            android:background="@android:color/transparent"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/font_normal_16"
+        android:layout_marginStart="@dimen/spacing_small_8">
+
+        <Button
+            android:id="@+id/btn_stocks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/spacing_huge_32"
+
+            android:textAllCaps="false"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:textStyle="bold"
+            android:text="Stocks"/>
+
+        <Button
+            android:id="@+id/btn_favourite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/spacing_huge_32"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:text="Favourite"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/font_normal_16"
+        android:layout_marginStart="@dimen/spacing_small_8"
+        android:layout_marginEnd="@dimen/spacing_small_8">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycle_list_stock"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layoutAnimation="@anim/layout_animation"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

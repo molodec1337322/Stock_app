@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#FFFFFF</color>
+    <color name="colorPrimaryDark">#f0f4f4</color>
+    <color name="colorPrimaryDarkerThanBlack">#8A8A8A</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorAccent">#F0E24F</color>
+    <color name="colorFavourite">#FFD637</color>
+    <color name="colorNotFavourite">#696969</color>
+    <color name="colorIncreasePriceGreen">#00AD23</color>
+    <color name="colorDecreasePriceRed">#E62F22</color>
+</resources>
