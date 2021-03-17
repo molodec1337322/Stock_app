@@ -47,7 +47,7 @@ class ListActivity : AppCompatActivity() {
         stock = btn_stocks
         favourite = btn_favourite
 
-        favourite.setTextColor(this.getColor(R.color.colorPrimaryDark))
+        favourite.setTextColor(this.getColor(R.color.colorInactiveButton))
         favourite.setTextSize(24f)
 
         stock.setOnClickListener(View.OnClickListener {
@@ -67,6 +67,6 @@ class ListActivity : AppCompatActivity() {
 
     fun setButtonInactive(button: Button){
         button.setTextSize(24f)
-        button.setTextColor(this.getColor(R.color.colorPrimaryDark))
+        button.setTextColor(this.getColor(R.color.colorInactiveButton))
     }
 }

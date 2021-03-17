@@ -47,7 +47,7 @@ class StockAdapter(val stocks: MutableList<Stock>, val context: Context):
             holder.priceChange.setTextColor(context.getColor(R.color.colorNotFavourite))
         }
 
-        if(position % 2 == 0){
+        if(position % 2 == 1){
             holder.layout.setBackgroundResource(R.drawable.roundrectangle)
         }
         else{
