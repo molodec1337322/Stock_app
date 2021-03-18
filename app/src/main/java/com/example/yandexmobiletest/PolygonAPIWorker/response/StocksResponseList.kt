@@ -1,8 +1,8 @@
-package com.example.yandexmobiletest.PolygonAPIWorker
+package com.example.yandexmobiletest.PolygonAPIWorker.response
 
 import com.google.gson.annotations.SerializedName
 
-data class StoksResponseList(
+data class StocksResponseList(
     @SerializedName("count") val count: Int,
     @SerializedName("page") val page: Int,
     @SerializedName("perPage") val perPage: Int,

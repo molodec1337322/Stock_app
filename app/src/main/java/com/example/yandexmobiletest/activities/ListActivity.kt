@@ -8,13 +8,19 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.example.yandexmobiletest.PolygonAPIWorker.common.Common
+import com.example.yandexmobiletest.PolygonAPIWorker.response.StocksResponseList
 import com.example.yandexmobiletest.R
 import com.example.yandexmobiletest.stocks.StockDTO
 import com.example.yandexmobiletest.stocks.StockAdapter
 import kotlinx.android.synthetic.main.activity_list.*
 import kotlinx.android.synthetic.main.activity_list.btn_favourite
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 
 class ListActivity : AppCompatActivity() {
@@ -24,9 +30,12 @@ class ListActivity : AppCompatActivity() {
     lateinit var favourite: Button
     lateinit var stock_recycler: RecyclerView
 
+    private var retrofitService = Common.retrofitService
+
     private var adapterStocks: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
     private var adapterFavourites: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
     private var stockDTOS: MutableList<StockDTO> = mutableListOf(
+        /*
         StockDTO("AAPL", "Apple inc.", "$5000.00","+$12.03(0.1%)", true),
         StockDTO("YYNDX", "Yandex LLC", "$45200.00","-$12.03(0.01%)", true),
         StockDTO("GOOGL", "Alphabet Class P", "$5000.00","+$12.03(0.15%)", false),
@@ -34,6 +43,7 @@ class ListActivity : AppCompatActivity() {
         StockDTO("BAC", "Bank of America", "$300.00","-$125.03(33.1%)", true),
         StockDTO("MSFT", "Microsoft Inc.", "$54540.00","+$12.03(0.15%)", false),
         StockDTO("TSLA", "Tesla motors", "$540.00","+$12.03(0.15%)", false)
+         */
     )
 
     private var favourites: MutableList<StockDTO> = mutableListOf()
@@ -78,6 +88,7 @@ class ListActivity : AppCompatActivity() {
             showFavourites()
         })
 
+        getStocksList()
         stock_recycler = recycle_list_stock
         stock_recycler.setHasFixedSize(true)
         stock_recycler.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
@@ -116,5 +127,21 @@ class ListActivity : AppCompatActivity() {
 
     fun updateFavourites(){
         favourites = stockDTOS.filter { it.isFavourite }.toMutableList()
+    }
+
+    fun getStocksList(){
+        retrofitService.getStocksResponseList().enqueue(object : Callback<StocksResponseList>{
+            override fun onFailure(call: Call<StocksResponseList>, t: Throwable) {
+                Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onResponse(
+                call: Call<StocksResponseList>,
+                response: Response<StocksResponseList>
+            ) {
+                val responseList = response
+            }
+
+        })
     }
 }

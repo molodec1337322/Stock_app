@@ -1,5 +1,6 @@
-package com.example.yandexmobiletest.PolygonAPIWorker
+package com.example.yandexmobiletest.PolygonAPIWorker.response
 
+import com.example.yandexmobiletest.PolygonAPIWorker.response.Codes
 import com.google.gson.annotations.SerializedName
 
 data class Ticker(

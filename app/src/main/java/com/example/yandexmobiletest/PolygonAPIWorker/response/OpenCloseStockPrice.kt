@@ -1,4 +1,4 @@
-package com.example.yandexmobiletest.PolygonAPIWorker
+package com.example.yandexmobiletest.PolygonAPIWorker.response
 
 import com.google.gson.annotations.SerializedName
 
