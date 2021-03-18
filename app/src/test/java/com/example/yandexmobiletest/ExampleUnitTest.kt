@@ -1,5 +1,7 @@
 package com.example.yandexmobiletest
 
+import com.example.yandexmobiletest.stocks.StockDTO
+import com.google.gson.internal.LinkedHashTreeMap
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -13,5 +15,10 @@ class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
+    }
+
+    @Test
+    fun getAPIInfo(){
+        var mutableList: MutableList<StockDTO> = mutableListOf()
     }
 }

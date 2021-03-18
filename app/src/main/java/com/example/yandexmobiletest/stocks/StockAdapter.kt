@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yandexmobiletest.R
 
-class StockAdapter(val stocks: MutableList<Stock>, val context: Context):
+class StockAdapter(val stockDTOS: MutableList<StockDTO>, val context: Context):
     RecyclerView.Adapter<StockAdapter.StockHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StockHolder {
@@ -19,38 +19,38 @@ class StockAdapter(val stocks: MutableList<Stock>, val context: Context):
     }
 
     override fun getItemCount(): Int {
-        return stocks.size;
+        return stockDTOS.size;
     }
 
     override fun onBindViewHolder(holder: StockHolder, position: Int) {
-        holder.ticker.text = stocks[position].ticker
+        holder.ticker.text = stockDTOS[position].ticker
 
-        holder.company.text = stocks[position].company
+        holder.company.text = stockDTOS[position].company
 
-        if(!stocks[position].isFavourite){
+        if(!stockDTOS[position].isFavourite){
             holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_not_favourite_40)
         }
         else{
             holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_favourite_40)
         }
         holder.favourite.setOnClickListener(View.OnClickListener {
-            if(!stocks[position].isFavourite){
-                stocks[position].isFavourite = true
+            if(!stockDTOS[position].isFavourite){
+                stockDTOS[position].isFavourite = true
                 holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_favourite_40)
             }
             else{
-                stocks[position].isFavourite = false
+                stockDTOS[position].isFavourite = false
                 holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_not_favourite_40)
             }
         })
 
-        holder.price.text = stocks[position].price
+        holder.price.text = stockDTOS[position].price
 
-        holder.priceChange.text = stocks[position].priceChange
-        if(stocks[position].priceChange[0] == '+'){
+        holder.priceChange.text = stockDTOS[position].priceChange
+        if(stockDTOS[position].priceChange[0] == '+'){
             holder.priceChange.setTextColor(context.getColor(R.color.colorIncreasePriceGreen))
         }
-        else if(stocks[position].priceChange[0] == '-'){
+        else if(stockDTOS[position].priceChange[0] == '-'){
             holder.priceChange.setTextColor(context.getColor(R.color.colorDecreasePriceRed))
         }
         else{
