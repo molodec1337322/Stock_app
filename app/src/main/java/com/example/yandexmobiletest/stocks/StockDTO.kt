@@ -1,6 +1,6 @@
 package com.example.yandexmobiletest.stocks
 
-class StockDTO(
+data class StockDTO(
     var ticker: String,
     var company: String,
     var price: String,
