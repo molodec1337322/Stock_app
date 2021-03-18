@@ -33,6 +33,16 @@ class StockAdapter(val stocks: MutableList<Stock>, val context: Context):
         else{
             holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_favourite_40)
         }
+        holder.favourite.setOnClickListener(View.OnClickListener {
+            if(!stocks[position].isFavourite){
+                stocks[position].isFavourite = true
+                holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_favourite_40)
+            }
+            else{
+                stocks[position].isFavourite = false
+                holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_not_favourite_40)
+            }
+        })
 
         holder.price.text = stocks[position].price
 
@@ -55,7 +65,7 @@ class StockAdapter(val stocks: MutableList<Stock>, val context: Context):
         }
     }
 
-    class StockHolder(val stockView: View): RecyclerView.ViewHolder(stockView){
+    class StockHolder(stockView: View): RecyclerView.ViewHolder(stockView){
         val ticker = stockView.findViewById<TextView>(R.id.tv_ticker)
         val company = stockView.findViewById<TextView>(R.id.tv_company_name)
         val favourite = stockView.findViewById<ImageButton>(R.id.btn_favourite)

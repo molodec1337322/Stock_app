@@ -22,7 +22,8 @@ class ListActivity : AppCompatActivity() {
     lateinit var favourite: Button
     lateinit var stock_recycler: RecyclerView
 
-    private var adapter: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
+    private var adapterStocks: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
+    private var adapterFavourites: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
     private var stocks: MutableList<Stock> = mutableListOf(
         Stock("AAPL", "Apple inc.", "$5000.00","+$12.03(0.1%)", true),
         Stock("YYNDX", "Yandex LLC", "$45200.00","-$12.03(0.01%)", true),
@@ -31,42 +32,71 @@ class ListActivity : AppCompatActivity() {
         Stock("BAC", "Bank of America", "$300.00","-$125.03(33.1%)", true)
     )
 
+    private var favourites: MutableList<Stock> = mutableListOf(
+        //Stock("AAPL", "Apple inc.", "$5000.00","+$12.03(0.1%)", true),
+        //Stock("YYNDX", "Yandex LLC", "$45200.00","-$12.03(0.01%)", true),
+        //Stock("BAC", "Bank of America", "$300.00","-$125.03(33.1%)", true)
+    )
+
     private val context: Context = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
-        adapter = StockAdapter(stocks, context)
-        stock_recycler = recycle_list_stock
-        stock_recycler.setHasFixedSize(true)
-        stock_recycler.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
-        stock_recycler.adapter = adapter
+
+
 
         search = etd_search
         stock = btn_stocks
         favourite = btn_favourite
 
-        favourite.setTextColor(this.getColor(R.color.colorInactiveButton))
-        favourite.setTextSize(24f)
-
         stock.setOnClickListener(View.OnClickListener {
-            setButtonActive(stock)
-            setButtonInactive(favourite)
+            showStocks()
         })
         favourite.setOnClickListener(View.OnClickListener {
-            setButtonActive(favourite)
-            setButtonInactive(stock)
+            showFavourites()
         })
+
+        stock_recycler = recycle_list_stock
+        stock_recycler.setHasFixedSize(true)
+        stock_recycler.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)
+        adapterStocks = StockAdapter(stocks, context)
+        stock_recycler.adapter = adapterStocks
+        updateFavourites()
+        showStocks()
+        //stock_recycler.adapter = adapterStocks
     }
 
     fun setButtonActive(button: Button){
         button.setTextSize(32f)
         button.setTextColor(this.getColor(R.color.colorBlack))
+        button.isEnabled = false
     }
 
     fun setButtonInactive(button: Button){
         button.setTextSize(24f)
         button.setTextColor(this.getColor(R.color.colorInactiveButton))
+        button.isEnabled = true
+    }
+
+    fun showStocks(){
+        setButtonActive(stock)
+        setButtonInactive(favourite)
+        adapterStocks = StockAdapter(stocks, context)
+        stock_recycler.swapAdapter(adapterStocks, false)
+
+    }
+
+    fun showFavourites(){
+        setButtonActive(favourite)
+        setButtonInactive(stock)
+        updateFavourites()
+        adapterFavourites = StockAdapter(favourites, context)
+        stock_recycler.swapAdapter(adapterFavourites, false)
+    }
+
+    fun updateFavourites(){
+        favourites = stocks.filter { it.isFavourite }.toMutableList()
     }
 }
