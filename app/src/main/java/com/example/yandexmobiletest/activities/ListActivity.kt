@@ -1,6 +1,7 @@
 package com.example.yandexmobiletest.activities
 
 import android.content.Context
+import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
@@ -8,6 +9,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,6 +37,7 @@ class ListActivity : AppCompatActivity() {
     lateinit var stock: Button
     lateinit var favourite: Button
     lateinit var stock_recycler: RecyclerView
+    lateinit var progress_Bar: ProgressBar
 
     private val context: Context = this
 
@@ -60,6 +63,7 @@ class ListActivity : AppCompatActivity() {
         search = etd_search
         stock = btn_stocks
         favourite = btn_favourite
+        progress_Bar = progressBar
 
         search.addTextChangedListener(object : TextWatcher{
             override fun afterTextChanged(s: Editable?) {
@@ -122,9 +126,13 @@ class ListActivity : AppCompatActivity() {
         stock_recycler.layoutManager = layoutManager
         adapterStocks = StockAdapter(stockDTOS, context)
         stock_recycler.adapter = adapterStocks
+
         stock_recycler.addOnScrollListener(object: RecyclerView.OnScrollListener(){
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
+                if(dy >= 5){
+                    hideProgressBar()
+                }
                 if(dy > 0){
                     if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount){
                         getPriceForStocks(stocksListResponse, currentShowingStocks)
@@ -133,6 +141,7 @@ class ListActivity : AppCompatActivity() {
                 }
             }
         })
+
         showStocks()
     }
 
@@ -164,11 +173,20 @@ class ListActivity : AppCompatActivity() {
         stock_recycler.swapAdapter(adapterFavourites, false)
     }
 
+    fun showProgressBar(){
+        progress_Bar.visibility = View.VISIBLE
+    }
+
+    fun hideProgressBar(){
+        progress_Bar.visibility = View.INVISIBLE
+    }
+
     fun updateFavourites(){
         favourites = stockDTOS.filter { it.isFavourite }.toMutableList()
     }
 
     fun getStocksList(){
+        showProgressBar()
         retrofitService.getStocksResponseList().enqueue(object : Callback<StocksList>{
             override fun onFailure(call: Call<StocksList>, t: Throwable) {
                 Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
@@ -196,6 +214,7 @@ class ListActivity : AppCompatActivity() {
                 break
             }
 
+            showProgressBar()
             retrofitService.getOpenCloseStockPrice("https://finnhub.io/api/v1/quote?symbol=${currTicker.symbol}&token=c19j8rf48v6prmim2iog")
                 .enqueue(object : Callback<StockPrice>{
                     override fun onFailure(call: Call<StockPrice>, t: Throwable) {
@@ -227,6 +246,7 @@ class ListActivity : AppCompatActivity() {
                                 )
                             )
                             adapterStocks!!.notifyDataSetChanged()
+                            hideProgressBar()
                         }
                     }
                 })
@@ -243,6 +263,7 @@ class ListActivity : AppCompatActivity() {
                 break
             }
 
+            showProgressBar()
             retrofitService.getOpenCloseStockPrice("https://finnhub.io/api/v1/quote?symbol=${currTicker.symbol}&token=c19j8rf48v6prmim2iog")
                 .enqueue(object : Callback<StockPrice> {
                     override fun onFailure(call: Call<StockPrice>, t: Throwable) {
@@ -273,17 +294,17 @@ class ListActivity : AppCompatActivity() {
                                     priceChange
                                 )
                             )
-
                             adapterStocks!!.notifyDataSetChanged()
-                            val stocksTmp = stockDTOS.filter {
-                                it.company.toLowerCase(Locale.getDefault()).startsWith(s.toLowerCase(Locale.getDefault())) ||
-                                        it.ticker.toLowerCase(Locale.getDefault()).startsWith(s.toLowerCase(Locale.getDefault()))
-                            }.toMutableList()
-                            val tmpAdapter = StockAdapter(stocksTmp, context)
-                            stock_recycler.swapAdapter(tmpAdapter, false)
+                            hideProgressBar()
                         }
                     }
                 })
         }
+        val stocksTmp = stockDTOS.filter {
+            it.company.toLowerCase(Locale.getDefault()).startsWith(s.toLowerCase(Locale.getDefault())) ||
+                    it.ticker.toLowerCase(Locale.getDefault()).startsWith(s.toLowerCase(Locale.getDefault()))
+        }.toMutableList()
+        val tmpAdapter = StockAdapter(stocksTmp, context)
+        stock_recycler.swapAdapter(tmpAdapter, false)
     }
 }

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -66,6 +67,7 @@ class StockAdapter(val stockDTOS: MutableList<StockDTO>, val context: Context):
     }
 
     class StockHolder(stockView: View): RecyclerView.ViewHolder(stockView){
+
         val ticker = stockView.findViewById<TextView>(R.id.tv_ticker)
         val company = stockView.findViewById<TextView>(R.id.tv_company_name)
         val favourite = stockView.findViewById<ImageButton>(R.id.btn_favourite)

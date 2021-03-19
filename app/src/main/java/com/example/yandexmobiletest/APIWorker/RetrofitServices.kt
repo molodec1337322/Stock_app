@@ -15,7 +15,7 @@ import retrofit2.http.Url
 //https://finnhub.io/api/v1/quote?symbol=AAPL&token=c19j8rf48v6prmim2iog получение цены на акцию
 
 interface RetrofitServices {
-    @GET("https://finnhub.io/api/v1/stock/symbol?exchange=HG&token=c19j8rf48v6prmim2iog")
+    @GET("https://finnhub.io/api/v1/stock/symbol?exchange=US&token=c19j8rf48v6prmim2iog")
     fun getStocksResponseList(): Call<StocksList>
 
     @GET//(https://finnhub.io/api/v1/search?q=apple&token=c19j8rf48v6prmim2iog)
