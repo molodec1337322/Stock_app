@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.yandexmobiletest.APIWorker.common.Common
+import com.example.yandexmobiletest.APIWorker.responseFinHub.BestMatchingStockList
+import com.example.yandexmobiletest.APIWorker.responseFinHub.Result
 import com.example.yandexmobiletest.APIWorker.responseFinHub.StockPrice
 import com.example.yandexmobiletest.APIWorker.responseFinHub.StocksList
 import com.example.yandexmobiletest.APIWorker.responseFinHub.StocksListItem
@@ -40,25 +42,16 @@ class ListActivity : AppCompatActivity() {
 
     private var adapterStocks: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
     private var adapterFavourites: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
-    private var stockDTOS: MutableList<StockDTO> = mutableListOf(
-        /*
-        StockDTO("AAPL", "Apple inc.", "$5000.00","+$12.03(0.1%)", true),
-        StockDTO("YYNDX", "Yandex LLC", "$45200.00","-$12.03(0.01%)", true),
-        StockDTO("GOOGL", "Alphabet Class P", "$5000.00","+$12.03(0.15%)", false),
-        StockDTO("AMZN", "Amazon", "$5540.00","+$12.03(0.15%)", false),
-        StockDTO("BAC", "Bank of America", "$300.00","-$125.03(33.1%)", true),
-        StockDTO("MSFT", "Microsoft Inc.", "$54540.00","+$12.03(0.15%)", false),
-        StockDTO("TSLA", "Tesla motors", "$540.00","+$12.03(0.15%)", false)
-         */
-    )
+
+    private var stockDTOS: MutableList<StockDTO> = mutableListOf()
+
     private var stocksListResponse: StocksList? = null
+
     private var currentShowingStocks = 0
-    private val stocksPerPage = 20
+    private var currentShowingSearchedStocks = 0
+    private val stocksPerPage = 10
 
     private var favourites: MutableList<StockDTO> = mutableListOf()
-
-    //надо спрятать
-    private val API_KEY = "c19j8rf48v6prmim2iog"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +64,38 @@ class ListActivity : AppCompatActivity() {
         search.addTextChangedListener(object : TextWatcher{
             override fun afterTextChanged(s: Editable?) {
 
+                if(s.toString() != ""){
+                    currentShowingSearchedStocks = 0
+
+
+                    retrofitService.getBestMatchingTickerOrName("https://finnhub.io/api/v1/search?q=${s.toString()}&token=c19j8rf48v6prmim2iog")
+                        .enqueue(object : Callback<BestMatchingStockList>{
+                            override fun onFailure(call: Call<BestMatchingStockList>, t: Throwable) {
+                                Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
+                            }
+
+                            override fun onResponse(
+                                call: Call<BestMatchingStockList>,
+                                response: Response<BestMatchingStockList>
+                            ) {
+                                val responseList = response.body()
+                                getPriceForSearchedStocks(responseList, currentShowingSearchedStocks, s.toString())
+
+                                /*
+                                val stocksTmp = stockDTOS.filter {
+                                    it.company.toLowerCase(Locale.getDefault()).startsWith(s.toString().toLowerCase(Locale.getDefault())) ||
+                                            it.ticker.toLowerCase(Locale.getDefault()).startsWith(s.toString().toLowerCase(Locale.getDefault()))
+                                }.toMutableList()
+                                val tmpAdapter = StockAdapter(stocksTmp, context)
+                                stock_recycler.swapAdapter(tmpAdapter, false)
+
+                                 */
+                            }
+                        })
+                }
+                else{
+                    stock_recycler.swapAdapter(adapterStocks, false)
+                }
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -78,13 +103,7 @@ class ListActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val userInput = s.toString()
-                val stocksTmp = stockDTOS.filter {
-                    it.company.toLowerCase(Locale.getDefault()).startsWith(userInput.toLowerCase(Locale.getDefault())) ||
-                            it.ticker.toLowerCase(Locale.getDefault()).startsWith(userInput.toLowerCase(Locale.getDefault()))
-                }.toMutableList()
-                val tmpAdapter = StockAdapter(stocksTmp, context)
-                stock_recycler.swapAdapter(tmpAdapter, false)
+
             }
         })
 
@@ -108,7 +127,8 @@ class ListActivity : AppCompatActivity() {
                 super.onScrolled(recyclerView, dx, dy)
                 if(dy > 0){
                     if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount){
-                        getPriceForStocks()
+                        getPriceForStocks(stocksListResponse, currentShowingStocks)
+                        currentShowingStocks += stocksPerPage
                     }
                 }
             }
@@ -159,60 +179,111 @@ class ListActivity : AppCompatActivity() {
                 response: Response<StocksList>
             ) {
                 stocksListResponse = response.body()
-                getPriceForStocks()
+                getPriceForStocks(stocksListResponse, currentShowingStocks)
+                currentShowingStocks += stocksPerPage
             }
         })
     }
 
-    fun getPriceForStocks(){
+    fun getPriceForStocks(stocksListResponse: StocksList?, currentShowingStocks: Int){
         for(i in currentShowingStocks until currentShowingStocks + stocksPerPage){
 
             var currTicker: StocksListItem?
-            if(stocksListResponse != null && i < stocksListResponse!!.size){
-                currTicker = stocksListResponse?.get(i)
+            if(stocksListResponse != null && i < stocksListResponse.size){
+                currTicker = stocksListResponse[i]
             }
             else{
                 break
-                //currTicker = null
             }
 
-            if(currTicker != null){
-                retrofitService.getOpenCloseStockPrice("https://finnhub.io/api/v1/quote?symbol=${currTicker.symbol}&token=c19j8rf48v6prmim2iog")
-                    .enqueue(object : Callback<StockPrice>{
-                        override fun onFailure(call: Call<StockPrice>, t: Throwable) {
+            retrofitService.getOpenCloseStockPrice("https://finnhub.io/api/v1/quote?symbol=${currTicker.symbol}&token=c19j8rf48v6prmim2iog")
+                .enqueue(object : Callback<StockPrice>{
+                    override fun onFailure(call: Call<StockPrice>, t: Throwable) {
 
-                        }
+                    }
 
-                        override fun onResponse(
-                            call: Call<StockPrice>,
-                            response: Response<StockPrice>
-                        ) {
-                            if(response.body() != null){
-                                val priceChange: String
-                                if(String.format("%.2f", response.body()!!.o - response.body()!!.c).toDouble() > 0){
-                                    priceChange = String.format("+%.2f", response.body()!!.o - response.body()!!.c)
-                                }
-                                else if(String.format("%.2f", response.body()!!.o - response.body()!!.c).toDouble() < 0){
-                                    priceChange = String.format("%.2f", response.body()!!.o - response.body()!!.c)
-                                }
-                                else{
-                                    priceChange = String.format("%.2f", response.body()!!.o - response.body()!!.c)
-                                }
-
-                                stockDTOS.add(
-                                    StockDTO(
-                                        currTicker.symbol,
-                                        currTicker.description,
-                                        response.body()!!.c.toString(),
-                                        priceChange
-                                    )
-                                )
-                                showStocks()
+                    override fun onResponse(
+                        call: Call<StockPrice>,
+                        response: Response<StockPrice>
+                    ) {
+                        if(response.body() != null){
+                            val priceChange: String
+                            if(String.format("%.2f", response.body()!!.o - response.body()!!.c).toDouble() > 0){
+                                priceChange = String.format("+%.2f", response.body()!!.o - response.body()!!.c)
                             }
+                            else if(String.format("%.2f", response.body()!!.o - response.body()!!.c).toDouble() < 0){
+                                priceChange = String.format("%.2f", response.body()!!.o - response.body()!!.c)
+                            }
+                            else{
+                                priceChange = String.format("%.2f", response.body()!!.o - response.body()!!.c)
+                            }
+
+                            stockDTOS.add(
+                                StockDTO(
+                                    currTicker.symbol,
+                                    currTicker.description,
+                                    response.body()!!.c.toString(),
+                                    priceChange
+                                )
+                            )
+                            adapterStocks!!.notifyDataSetChanged()
                         }
-                    })
-            }
+                    }
+                })
         }
-        currentShowingStocks += stocksPerPage
+    }
+
+    fun getPriceForSearchedStocks(stocksListResponse: BestMatchingStockList?, currentShowingStocks: Int, s: String) {
+        for (i in currentShowingStocks until currentShowingStocks + stocksPerPage) {
+
+            var currTicker: Result?
+            if (stocksListResponse != null && i < stocksListResponse.result.size) {
+                currTicker = stocksListResponse.result[i]
+            } else {
+                break
+            }
+
+            retrofitService.getOpenCloseStockPrice("https://finnhub.io/api/v1/quote?symbol=${currTicker.symbol}&token=c19j8rf48v6prmim2iog")
+                .enqueue(object : Callback<StockPrice> {
+                    override fun onFailure(call: Call<StockPrice>, t: Throwable) {
+
+                    }
+
+                    override fun onResponse(
+                        call: Call<StockPrice>,
+                        response: Response<StockPrice>
+                    ) {
+                        if (response.body() != null) {
+                            val priceChange: String
+                            if (String.format("%.2f", response.body()!!.c - response.body()!!.pc).toDouble() > 0) {
+                                priceChange = String.format("+%.2f", response.body()!!.c - response.body()!!.pc)
+                            }
+                            else if (String.format("%.2f", response.body()!!.c - response.body()!!.pc).toDouble() < 0) {
+                                priceChange = String.format("%.2f", response.body()!!.c - response.body()!!.pc)
+                            }
+                            else {
+                                priceChange = String.format("%.2f", response.body()!!.c - response.body()!!.pc)
+                            }
+
+                            stockDTOS.add(
+                                StockDTO(
+                                    currTicker.symbol,
+                                    currTicker.description,
+                                    response.body()!!.c.toString(),
+                                    priceChange
+                                )
+                            )
+
+                            adapterStocks!!.notifyDataSetChanged()
+                            val stocksTmp = stockDTOS.filter {
+                                it.company.toLowerCase(Locale.getDefault()).startsWith(s.toLowerCase(Locale.getDefault())) ||
+                                        it.ticker.toLowerCase(Locale.getDefault()).startsWith(s.toLowerCase(Locale.getDefault()))
+                            }.toMutableList()
+                            val tmpAdapter = StockAdapter(stocksTmp, context)
+                            stock_recycler.swapAdapter(tmpAdapter, false)
+                        }
+                    }
+                })
+        }
     }
 }
