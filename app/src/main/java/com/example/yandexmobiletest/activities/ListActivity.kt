@@ -135,7 +135,8 @@ class ListActivity : AppCompatActivity() {
                     //hideProgressBar()
                 }
                 if(dy > 0){
-                    if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount){
+                    if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount
+                        && currentShowingStocks <= layoutManager.itemCount){
                         getPriceForStocks(stocksListResponse, currentShowingStocks)
                         currentShowingStocks += stocksPerPage
                     }
@@ -190,6 +191,7 @@ class ListActivity : AppCompatActivity() {
         showProgressBar()
         retrofitService.getStocksResponseList().enqueue(object : Callback<StocksList>{
             override fun onFailure(call: Call<StocksList>, t: Throwable) {
+                hideProgressBar()
                 Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
             }
 

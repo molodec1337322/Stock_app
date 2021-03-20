@@ -57,12 +57,13 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
+    <FrameLayout
         android:paddingTop="?actionBarSize"
         android:clipToPadding="false"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+        >
 
         <LinearLayout
             android:orientation="vertical"
@@ -88,7 +89,7 @@
 
         </LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
+    </FrameLayout>
 
     <Toolbar
         app:layout_anchor="@id/search_bar"
