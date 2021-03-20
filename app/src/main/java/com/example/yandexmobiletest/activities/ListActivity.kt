@@ -160,8 +160,8 @@ class ListActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(context)
         stock_recycler.layoutManager = layoutManager
         adapterStocks = StockAdapter(stockDTOS, context)
-        getStocksList()
         stock_recycler.adapter = adapterStocks
+        getStocksList()
 
         stock_recycler.addOnScrollListener(object: RecyclerView.OnScrollListener(){
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -309,10 +309,11 @@ class ListActivity : AppCompatActivity() {
                                 priceChange
                             )
                         )
-                        adapter.notifyDataSetChanged()
+
                         requestsCount--
                         if(requestsCount == 0){
                             hideProgressBar()
+                            stock_recycler.swapAdapter(adapter, false)
                         }
                     }
                 }

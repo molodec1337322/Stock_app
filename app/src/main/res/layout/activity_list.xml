@@ -5,19 +5,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.ListActivity"
+    app:layout_scrollFlags="scroll"
     android:orientation="vertical">
 
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/app_bar_112"
+        android:scrollbarStyle="insideInset"
         android:orientation="vertical">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/search_bar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|enterAlways|exitUntilCollapsed">
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -27,11 +29,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/search_spacing_54"
                     android:orientation="horizontal"
-                    android:layout_marginTop="@dimen/spacing_large_24"
+                    android:layout_marginTop="@dimen/spacing_small_8"
                     android:layout_marginStart="@dimen/spacing_small_8"
                     android:layout_marginEnd="@dimen/spacing_small_8"
-                    android:background="@drawable/roundrectangleforsearch"
-                    app:layout_scrollFlags="scroll|enterAlways">
+                    android:background="@drawable/roundrectangleforsearch">
 
                     <ImageView
                         android:layout_width="@dimen/btn_round_size_40"
