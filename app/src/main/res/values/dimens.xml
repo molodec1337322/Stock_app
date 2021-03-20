@@ -18,6 +18,7 @@
     <dimen name="btn_round_size_40">40dp</dimen>
     <dimen name="space_maximum_72">72dp</dimen>
     <dimen name="space_stock_96">96dp</dimen>
+    <dimen name="app_bar_112">112dp</dimen>
     <dimen name="btn_spacing_height">54dp</dimen>
     <dimen name="btn_spacing_width">128dp</dimen>
 </resources>

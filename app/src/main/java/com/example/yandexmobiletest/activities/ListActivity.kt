@@ -58,6 +58,7 @@ class ListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setSupportActionBar(findViewById(R.id.toolBar))
         setContentView(R.layout.activity_list)
 
         search = etd_search
@@ -131,7 +132,7 @@ class ListActivity : AppCompatActivity() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if(dy >= 5){
-                    hideProgressBar()
+                    //hideProgressBar()
                 }
                 if(dy > 0){
                     if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount){
@@ -246,7 +247,7 @@ class ListActivity : AppCompatActivity() {
                                 )
                             )
                             adapterStocks!!.notifyDataSetChanged()
-                            hideProgressBar()
+                            //hideProgressBar()
                         }
                     }
                 })
@@ -295,7 +296,7 @@ class ListActivity : AppCompatActivity() {
                                 )
                             )
                             adapterStocks!!.notifyDataSetChanged()
-                            hideProgressBar()
+                            //hideProgressBar()
                         }
                     }
                 })
