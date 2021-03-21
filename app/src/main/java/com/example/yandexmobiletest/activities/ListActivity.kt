@@ -51,11 +51,11 @@ class ListActivity : AppCompatActivity() {
 
     private var stockDTOS: MutableList<StockDTO> = mutableListOf()
     private var stockDTOSSearch: MutableList<StockDTO> = mutableListOf()
-
-    private var timer: Timer = Timer()
+    private var favourites: MutableList<StockDTO> = mutableListOf()
 
     private var isLoading = false
     private var isSearching = false
+    private var isInFavorite = false
 
     private var stockTickerAndDescList: MutableList<StockTickerAndDesc> = mutableListOf(
         StockTickerAndDesc("AAPL", "Apple Inc."), StockTickerAndDesc("BKNG", "Booking Holdings Inc."),
@@ -113,7 +113,7 @@ class ListActivity : AppCompatActivity() {
 
     private val stocksPerPage = 10
 
-    private var favourites: MutableList<StockDTO> = mutableListOf()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -178,7 +178,12 @@ class ListActivity : AppCompatActivity() {
                     else{
                         isSearching = false
                         requestsCount = 0
-                        stock_recycler.swapAdapter(adapterStocks, true)
+                        if(!isInFavorite){
+                            stock_recycler.swapAdapter(adapterStocks, true)
+                        }
+                        else{
+                            stock_recycler.swapAdapter(adapterFavourites, true)
+                        }
                     }
                 }
                 return true
@@ -241,6 +246,15 @@ class ListActivity : AppCompatActivity() {
     }
 
     fun showStocks(){
+        isInFavorite = false
+
+        stockDTOS.addAll(stockDTOSSearch.filter { !stockDTOS.contains(it) })
+        for(i in 0 until stockDTOS.size){
+            if(favourites.contains(stockDTOS[i])){
+                //stockDTOS[i] =
+            }
+        }
+
         setButtonActive(stock)
         setButtonInactive(favourite)
         if(!isSearching){
@@ -253,10 +267,22 @@ class ListActivity : AppCompatActivity() {
     }
 
     fun showFavourites(){
+        isInFavorite = true
+
         setButtonActive(favourite)
         setButtonInactive(stock)
-        updateFavourites()
+
+        favourites.removeAll(favourites.filter { !it.isFavourite })
+        favourites.addAll(stockDTOS.filter { it.isFavourite && !favourites.contains(it) })
+        favourites.addAll(stockDTOSSearch.filter { it.isFavourite && !favourites.contains(it) })
+
         stock_recycler.swapAdapter(adapterFavourites, false)
+    }
+
+    fun getStocksList(){
+        showProgressBar()
+
+        getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
     }
 
     fun showProgressBar(){
@@ -267,17 +293,6 @@ class ListActivity : AppCompatActivity() {
     fun hideProgressBar(){
         isLoading = false
         progress_Bar.visibility = View.INVISIBLE
-    }
-
-    fun updateFavourites(){
-        favourites.removeAll(favourites.filter { !it.isFavourite })
-        favourites.addAll(stockDTOS.filter { it.isFavourite && !favourites.contains(it) })
-        favourites.addAll(stockDTOSSearch.filter { it.isFavourite && !favourites.contains(it) })
-    }
-
-    fun getStocksList(){
-        showProgressBar()
-        getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
     }
 
     fun getPriceForStocks(
@@ -334,14 +349,15 @@ class ListActivity : AppCompatActivity() {
                                 priceChange = String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c)
                             }
 
-                            stocksDTOList.add(
-                                StockDTO(
-                                    stock.ticker,
-                                    stock.description,
-                                    response.body()!!.c.toString(),
-                                    priceChange
-                                )
+                            val loadedStock = StockDTO(
+                                stock.ticker,
+                                stock.description,
+                                response.body()!!.c.toString(),
+                                priceChange
                             )
+                            if(!stocksDTOList.contains(loadedStock)){
+                                stocksDTOList.add(loadedStock)
+                            }
                         }
                         if(requestsCount == 0){
                             hideProgressBar()
