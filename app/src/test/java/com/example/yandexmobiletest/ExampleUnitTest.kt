@@ -1,15 +1,9 @@
 package com.example.yandexmobiletest
 
 import com.example.yandexmobiletest.APIWorker.common.Common
-import com.example.yandexmobiletest.APIWorker.responseFinHub.StocksList
-import com.example.yandexmobiletest.stocks.StockDTO
-import com.google.gson.internal.LinkedHashTreeMap
 import org.junit.Test
 
 import org.junit.Assert.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.File
 
 /**

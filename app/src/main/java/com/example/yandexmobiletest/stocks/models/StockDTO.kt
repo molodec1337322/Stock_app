@@ -1,4 +1,4 @@
-package com.example.yandexmobiletest.stocks
+package com.example.yandexmobiletest.stocks.models
 
 data class StockDTO(
     var ticker: String,

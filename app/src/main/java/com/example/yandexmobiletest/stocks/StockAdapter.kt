@@ -5,14 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yandexmobiletest.R
+import com.example.yandexmobiletest.stocks.models.StockDTO
 
 class StockAdapter(val stockDTOS: MutableList<StockDTO>, val context: Context):
     RecyclerView.Adapter<StockAdapter.StockHolder>() {
+
+    var stockAdapterListener: StockAdapterListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StockHolder {
         val stockView = LayoutInflater.from(parent.context).inflate(R.layout.stocks, parent, false)
@@ -38,10 +40,12 @@ class StockAdapter(val stockDTOS: MutableList<StockDTO>, val context: Context):
             if(!stockDTOS[position].isFavourite){
                 stockDTOS[position].isFavourite = true
                 holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_favourite_40)
+                stockAdapterListener?.onMarkedAsFavorite(stockDTOS[position])
             }
             else{
                 stockDTOS[position].isFavourite = false
                 holder.favourite.setBackgroundResource(R.drawable.ic_baseline_star_not_favourite_40)
+                stockAdapterListener?.onRemovedFromFavorite(stockDTOS[position])
             }
         })
 
