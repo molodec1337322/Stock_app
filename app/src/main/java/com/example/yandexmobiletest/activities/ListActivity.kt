@@ -250,8 +250,10 @@ class ListActivity : AppCompatActivity() {
 
         stockDTOS.addAll(stockDTOSSearch.filter { !stockDTOS.contains(it) })
         for(i in 0 until stockDTOS.size){
-            if(favourites.contains(stockDTOS[i])){
-                //stockDTOS[i] =
+            for(j in 0 until favourites.size){
+                if(stockDTOS[i].ticker == favourites[j].ticker){
+                    stockDTOS[i] = favourites[j]
+                }
             }
         }
 
