@@ -41,7 +41,10 @@
                         android:background="@drawable/ic_baseline_search_40"/>
 
                     <EditText
+                        android:imeOptions="actionDone"
                         android:id="@+id/etd_search"
+                        android:maxLines="1"
+                        android:inputType="text"
                         android:hint="Find company or ticker"
                         android:layout_width="0dp"
                         android:layout_weight="1"

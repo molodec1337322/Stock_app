@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,6 +28,7 @@ import kotlinx.android.synthetic.main.activity_list.btn_favourite
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.security.Key
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,7 +44,6 @@ class ListActivity : AppCompatActivity() {
 
     private var retrofitService = Common.retrofitService
     private var requestsCount = 0
-    private var searchRequestCount = 0
 
     private var adapterStocks: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
     private var adapterFavourites: RecyclerView.Adapter<StockAdapter.StockHolder>? = null
@@ -123,72 +125,66 @@ class ListActivity : AppCompatActivity() {
         favourite = btn_favourite
         progress_Bar = progressBar
 
-        search.addTextChangedListener(object : TextWatcher{
-            override fun afterTextChanged(s: Editable?) {
+        search.setOnEditorActionListener(object : TextView.OnEditorActionListener{
+            override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
+                if(actionId == EditorInfo.IME_ACTION_DONE){
+                    val searchString = search.text.toString().toLowerCase(Locale.getDefault())
+                    if(searchString != ""){
+                        isSearching = true
+                        showProgressBar()
 
-                timer.schedule(object : TimerTask(){
-                    override fun run() {
-                        runOnUiThread(object : Runnable{
-                            override fun run() {
-                                if(s.toString() != ""){
-                                    isSearching = true
-                                    searchRequestCount++
-                                    showProgressBar()
+                        stockDTOSSearch.clear()
+                        stockTickerAndDescListSearch.clear()
 
-                                    stockDTOSSearch.clear()
-                                    stockTickerAndDescListSearch.clear()
-                                    stock_recycler.swapAdapter(adapterSearch, true)
+                        stock_recycler.swapAdapter(adapterSearch, false)
 
-                                    retrofitService.getBestMatchingTickerOrName("https://finnhub.io/api/v1/search?q=${s.toString()}&token=c19j8rf48v6prmim2iog")
-                                        .enqueue(object : Callback<BestMatchingStockList>{
-                                            override fun onFailure(call: Call<BestMatchingStockList>, t: Throwable) {
-                                                Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
-                                            }
-
-                                            override fun onResponse(
-                                                call: Call<BestMatchingStockList>,
-                                                response: Response<BestMatchingStockList>
-                                            ) {
-                                                searchRequestCount--
-                                                if(searchRequestCount == 0){
-                                                    if(response.errorBody() != null){
-                                                        Toast.makeText(context, "err", Toast.LENGTH_SHORT).show()
-                                                    }
-
-                                                    if(response.body() != null){
-                                                        val responseList = response.body()!!.result
-                                                        val currentLoadedStocks = response.body()!!.count
-                                                        for(i in 0 until currentLoadedStocks){
-                                                            stockTickerAndDescListSearch.add(StockTickerAndDesc(responseList[i].symbol, responseList[i].description))
-                                                        }
-                                                        getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
-                                                    }
-
-                                                    if(requestsCount == 0){
-                                                        hideProgressBar()
-                                                    }
-                                                }
-                                            }
-                                        })
+                        retrofitService.getBestMatchingTickerOrName("https://finnhub.io/api/v1/search?q=${searchString}&token=c19j8rf48v6prmim2iog")
+                            .enqueue(object : Callback<BestMatchingStockList>{
+                                override fun onFailure(call: Call<BestMatchingStockList>, t: Throwable) {
+                                    Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
                                 }
-                                else{
-                                    isSearching = false
-                                    stock_recycler.swapAdapter(adapterStocks, true)
+
+                                override fun onResponse(
+                                    call: Call<BestMatchingStockList>,
+                                    response: Response<BestMatchingStockList>
+                                ) {
+                                    if(response.errorBody() != null){
+                                        Toast.makeText(context, "err", Toast.LENGTH_SHORT).show()
+                                    }
+
+                                    for(i in 0 until stockTickerAndDescList.size){
+                                        val currentTickerAndDesc = stockTickerAndDescList[i]
+                                        if(currentTickerAndDesc.ticker.toLowerCase(Locale.getDefault()).startsWith(searchString) ||
+                                            currentTickerAndDesc.description.toLowerCase(Locale.getDefault()).startsWith(searchString)){
+                                            stockTickerAndDescListSearch.add(currentTickerAndDesc)
+                                        }
+                                    }
+
+                                    if(response.body() != null){
+                                        val responseList = response.body()!!.result
+                                        val currentLoadedStocks = response.body()!!.count
+                                        for(i in 0 until currentLoadedStocks){
+                                            val tmp = StockTickerAndDesc(responseList[i].symbol, responseList[i].description)
+                                            if(!stockTickerAndDescListSearch.contains(tmp)){
+                                                stockTickerAndDescListSearch.add(tmp)
+                                            }
+                                        }
+                                    }
+
+                                    getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
                                 }
-                            }
-                        })
+                            })
                     }
-                }, 1000)
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-
+                    else{
+                        isSearching = false
+                        requestsCount = 0
+                        stock_recycler.swapAdapter(adapterStocks, true)
+                    }
+                }
+                return true
             }
         })
+
 
         stock.setOnClickListener(View.OnClickListener {
             showStocks()
@@ -217,7 +213,7 @@ class ListActivity : AppCompatActivity() {
                 if(dy > 0){
                     if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount && !isLoading){
                         if(isSearching){
-                            getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOSSearch)
+                            getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
                         }
                         else{
                             getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
@@ -247,8 +243,12 @@ class ListActivity : AppCompatActivity() {
     fun showStocks(){
         setButtonActive(stock)
         setButtonInactive(favourite)
-        //adapterStocks = StockAdapter(stockDTOS, context)
-        stock_recycler.swapAdapter(adapterStocks, false)
+        if(!isSearching){
+            stock_recycler.swapAdapter(adapterStocks, false)
+        }
+        else{
+            stock_recycler.swapAdapter(adapterSearch, false)
+        }
 
     }
 
@@ -270,34 +270,14 @@ class ListActivity : AppCompatActivity() {
     }
 
     fun updateFavourites(){
-        favourites = stockDTOS.filter { it.isFavourite }.toMutableList()
+        favourites.removeAll(favourites.filter { !it.isFavourite })
+        favourites.addAll(stockDTOS.filter { it.isFavourite && !favourites.contains(it) })
+        favourites.addAll(stockDTOSSearch.filter { it.isFavourite && !favourites.contains(it) })
     }
 
     fun getStocksList(){
         showProgressBar()
         getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
-        /*
-        retrofitService.getStocksResponseList().enqueue(object : Callback<StocksList>{
-            override fun onFailure(call: Call<StocksList>, t: Throwable) {
-                Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onResponse(
-                call: Call<StocksList>,
-                response: Response<StocksList>
-            ) {
-                if(response.body() != null){
-
-                    for(i in response.body()!!.indices){
-                        stockTickerAndDescList.add(StockTickerAndDesc(response.body()!![i].symbol, response.body()!![i].description))
-                    }
-                }
-
-                getPriceForStocks(stockTickerAndDescList, adapterStocks!!, currentShowingStocks)
-                currentShowingStocks += stocksPerPage
-            }
-        })
-         */
     }
 
     fun getPriceForStocks(
@@ -322,7 +302,7 @@ class ListActivity : AppCompatActivity() {
     }
 
     fun getPrice(stock: StockTickerAndDesc, adapter: RecyclerView.Adapter<StockAdapter.StockHolder>, stocksDTOList: MutableList<StockDTO>){
-        
+
         retrofitService.getOpenCloseStockPrice("https://finnhub.io/api/v1/quote?symbol=${stock.ticker}&token=c19j8rf48v6prmim2iog")
             .enqueue(object : Callback<StockPrice>{
                 override fun onFailure(call: Call<StockPrice>, t: Throwable) {
@@ -333,39 +313,44 @@ class ListActivity : AppCompatActivity() {
                     call: Call<StockPrice>,
                     response: Response<StockPrice>
                 ) {
-                    requestsCount--
-                    if(response.errorBody() != null){
-                        if(requestsCount == 0){
-                            hideProgressBar()
-                            Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
-                    if(response.body() != null){
-                        val priceChange: String
-                        if(String.format("%.2f", response.body()!!.o - response.body()!!.c).toDouble() > 0){
-                            priceChange = String.format("+%.2f", response.body()!!.o - response.body()!!.c)
-                        }
-                        else if(String.format("%.2f", response.body()!!.o - response.body()!!.c).toDouble() < 0){
-                            priceChange = String.format("%.2f", response.body()!!.o - response.body()!!.c)
-                        }
-                        else{
-                            priceChange = String.format("%.2f", response.body()!!.o - response.body()!!.c)
+                    if(requestsCount > 0){
+                        requestsCount--
+                        if(response.errorBody() != null){
+                            if(requestsCount == 0){
+                                hideProgressBar()
+                                //Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
+                            }
                         }
 
-                        stocksDTOList.add(
-                            StockDTO(
-                                stock.ticker,
-                                stock.description,
-                                response.body()!!.c.toString(),
-                                priceChange
+                        if(response.body() != null){
+                            val priceChange: String
+                            if(String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c).toDouble() > 0){
+                                priceChange = String.format(Locale.US, "+%.2f", response.body()!!.o - response.body()!!.c)
+                            }
+                            else if(String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c).toDouble() < 0){
+                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c)
+                            }
+                            else{
+                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c)
+                            }
+
+                            stocksDTOList.add(
+                                StockDTO(
+                                    stock.ticker,
+                                    stock.description,
+                                    response.body()!!.c.toString(),
+                                    priceChange
+                                )
                             )
-                        )
-
+                        }
                         if(requestsCount == 0){
                             hideProgressBar()
                             stock_recycler.swapAdapter(adapter, false)
                         }
+                    }
+
+                    else if(requestsCount < 0){
+                        requestsCount = 0
                     }
                 }
             })
