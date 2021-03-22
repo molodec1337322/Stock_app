@@ -168,45 +168,11 @@ class ListActivity : AppCompatActivity() {
         adapterSearch = StockAdapter(stockDTOSSearch, context)
         adapterSearch!!.stockAdapterListener = object : StockAdapterListener{
             override fun onMarkedAsFavorite(stock: StockDTO) {
-                favouritesDTOS.add(stock)
-                for(i in 0 until stockTickerAndDescList.size){
-                    if(stockTickerAndDescList[i].ticker == stock.ticker){
-                        stockTickerAndDescList[i].isFavourite = true
-                    }
-                }
-                saveStartStockListLocal()
+                addedToFavouritesSync(stock)
             }
 
             override fun onRemovedFromFavorite(stock: StockDTO) {
-                for(i in 0 until favouritesDTOS.size){
-                    if(stock.ticker == favouritesDTOS[i].ticker){
-                        favouritesDTOS.removeAt(i)
-                        break
-                    }
-                }
-
-                for(i in 0 until stockTickerAndDescList.size){
-                    if(stockTickerAndDescList[i].ticker == stock.ticker){
-                        stockTickerAndDescList[i].isFavourite = false
-                    }
-                }
-
-                for(i in 0 until stockDTOS.size){
-                    if(stockDTOS[i].ticker == stock.ticker){
-                        stockDTOS[i] = stock
-                        break
-                    }
-                }
-
-                if(!stockDTOSSearch.none()){
-                    for(i in 0 until stockDTOSSearch.size){
-                        if(stockDTOSSearch[i].ticker == stock.ticker){
-                            stockDTOSSearch[i] = stock
-                        }
-                    }
-                }
-
-                saveStartStockListLocal()
+                removedFromFavouritesSync(stock)
             }
 
         }
@@ -214,45 +180,11 @@ class ListActivity : AppCompatActivity() {
         adapterStocks = StockAdapter(stockDTOS, context)
         adapterStocks!!.stockAdapterListener = object : StockAdapterListener{
             override fun onMarkedAsFavorite(stock: StockDTO) {
-                favouritesDTOS.add(stock)
-                for(i in 0 until stockTickerAndDescList.size){
-                    if(stockTickerAndDescList[i].ticker == stock.ticker){
-                        stockTickerAndDescList[i].isFavourite = true
-                    }
-                }
-                saveStartStockListLocal()
+                addedToFavouritesSync(stock)
             }
 
             override fun onRemovedFromFavorite(stock: StockDTO) {
-                for(i in 0 until favouritesDTOS.size){
-                    if(stock.ticker == favouritesDTOS[i].ticker){
-                        favouritesDTOS.removeAt(i)
-                        break
-                    }
-                }
-
-                for(i in 0 until stockTickerAndDescList.size){
-                    if(stockTickerAndDescList[i].ticker == stock.ticker){
-                        stockTickerAndDescList[i].isFavourite = false
-                    }
-                }
-
-                for(i in 0 until stockDTOS.size){
-                    if(stockDTOS[i].ticker == stock.ticker){
-                        stockDTOS[i] = stock
-                        break
-                    }
-                }
-
-                if(!stockDTOSSearch.none()){
-                    for(i in 0 until stockDTOSSearch.size){
-                        if(stockDTOSSearch[i].ticker == stock.ticker){
-                            stockDTOSSearch[i] = stock
-                        }
-                    }
-                }
-
-                saveStartStockListLocal()
+                removedFromFavouritesSync(stock)
             }
 
         }
@@ -260,45 +192,11 @@ class ListActivity : AppCompatActivity() {
         adapterFavourites = StockAdapter(favouritesDTOS, context)
         adapterFavourites!!.stockAdapterListener = object : StockAdapterListener{
             override fun onMarkedAsFavorite(stock: StockDTO) {
-                favouritesDTOS.add(stock)
-                for(i in 0 until stockTickerAndDescList.size){
-                    if(stockTickerAndDescList[i].ticker == stock.ticker){
-                        stockTickerAndDescList[i].isFavourite = true
-                    }
-                }
-                saveStartStockListLocal()
+                addedToFavouritesSync(stock)
             }
 
             override fun onRemovedFromFavorite(stock: StockDTO) {
-                for(i in 0 until favouritesDTOS.size){
-                    if(stock.ticker == favouritesDTOS[i].ticker){
-                        favouritesDTOS.removeAt(i)
-                        break
-                    }
-                }
-
-                for(i in 0 until stockTickerAndDescList.size){
-                    if(stockTickerAndDescList[i].ticker == stock.ticker){
-                        stockTickerAndDescList[i].isFavourite = false
-                    }
-                }
-
-                for(i in 0 until stockDTOS.size){
-                    if(stockDTOS[i].ticker == stock.ticker){
-                        stockDTOS[i] = stock
-                        break
-                    }
-                }
-
-                if(!stockDTOSSearch.none()){
-                    for(i in 0 until stockDTOSSearch.size){
-                        if(stockDTOSSearch[i].ticker == stock.ticker){
-                            stockDTOSSearch[i] = stock
-                        }
-                    }
-                }
-
-                saveStartStockListLocal()
+                removedFromFavouritesSync(stock)
             }
 
         }
@@ -332,6 +230,48 @@ class ListActivity : AppCompatActivity() {
         })
 
         showStocks()
+    }
+
+    fun addedToFavouritesSync(stock: StockDTO){
+        favouritesDTOS.add(stock)
+        for(i in 0 until stockTickerAndDescList.size){
+            if(stockTickerAndDescList[i].ticker == stock.ticker){
+                stockTickerAndDescList[i].isFavourite = true
+            }
+        }
+        saveStartStockListLocal()
+    }
+
+    fun removedFromFavouritesSync(stock: StockDTO){
+        for(i in 0 until favouritesDTOS.size){
+            if(stock.ticker == favouritesDTOS[i].ticker){
+                favouritesDTOS.removeAt(i)
+                break
+            }
+        }
+
+        for(i in 0 until stockTickerAndDescList.size){
+            if(stockTickerAndDescList[i].ticker == stock.ticker){
+                stockTickerAndDescList[i].isFavourite = false
+            }
+        }
+
+        for(i in 0 until stockDTOS.size){
+            if(stockDTOS[i].ticker == stock.ticker){
+                stockDTOS[i] = stock
+                break
+            }
+        }
+
+        if(!stockDTOSSearch.none()){
+            for(i in 0 until stockDTOSSearch.size){
+                if(stockDTOSSearch[i].ticker == stock.ticker){
+                    stockDTOSSearch[i] = stock
+                }
+            }
+        }
+
+        saveStartStockListLocal()
     }
 
     fun setButtonActive(button: Button){
