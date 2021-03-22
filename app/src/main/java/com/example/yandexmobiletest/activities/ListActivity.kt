@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.yandexmobiletest.APIWorker.common.Common
 import com.example.yandexmobiletest.APIWorker.responseFinHub.BestMatchingStockList
 import com.example.yandexmobiletest.APIWorker.responseFinHub.StockPrice
@@ -38,6 +39,7 @@ class ListActivity : AppCompatActivity() {
     lateinit var clear: ImageButton
     lateinit var stock_recycler: RecyclerView
     lateinit var progress_Bar: ProgressBar
+    lateinit var swipe_layoyt: SwipeRefreshLayout
 
     private val context: Context = this
 
@@ -73,6 +75,26 @@ class ListActivity : AppCompatActivity() {
         clear = btn_clear_search
         favourite = btn_favourite
         progress_Bar = progressBar
+        swipe_layoyt = swipe_refresh_layout
+
+        swipe_layoyt.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener{
+            override fun onRefresh() {
+                if(isInFavorite){
+                    favouritesDTOS.clear()
+                    getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
+                }
+                else if(isSearching){
+                    stockDTOSSearch.clear()
+                    getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                }
+                else if(!isSearching){
+                    stockDTOS.clear()
+                    getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
+                }
+
+                showProgressBar()
+            }
+        } )
 
         search.addTextChangedListener(object : TextWatcher{
             override fun afterTextChanged(s: Editable?) {
@@ -119,35 +141,36 @@ class ListActivity : AppCompatActivity() {
                                     ) {
                                         if(search.text.toString() != ""){
                                             if(response.errorBody() != null){
-                                                Toast.makeText(context, "err", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, "Failed connect to server\nTry again later", Toast.LENGTH_SHORT).show()
                                             }
-
-                                            for(i in 0 until stockTickerAndDescList.size){
-                                                val currentTickerAndDesc = stockTickerAndDescList[i]
-                                                if(currentTickerAndDesc.ticker.toLowerCase(Locale.getDefault()).startsWith(searchString) ||
-                                                    currentTickerAndDesc.description.toLowerCase(Locale.getDefault()).startsWith(searchString)){
-                                                    stockTickerAndDescListSearch.add(currentTickerAndDesc)
-                                                }
-                                            }
-
-                                            if(response.body() != null){
-                                                val responseList = response.body()!!.result
-                                                val currentLoadedStocks = response.body()!!.count
-
-                                                for(i in 0 until currentLoadedStocks){
-                                                    val currentTickerAndDesc =
-                                                        StockTickerAndDesc(
-                                                            responseList[i].symbol,
-                                                            responseList[i].description,
-                                                            false
-                                                        )
-                                                    if (!stockTickerAndDescListSearch.containsStock(currentTickerAndDesc)){
+                                            else{
+                                                for(i in 0 until stockTickerAndDescList.size){
+                                                    val currentTickerAndDesc = stockTickerAndDescList[i]
+                                                    if(currentTickerAndDesc.ticker.toLowerCase(Locale.getDefault()).startsWith(searchString) ||
+                                                        currentTickerAndDesc.description.toLowerCase(Locale.getDefault()).startsWith(searchString)){
                                                         stockTickerAndDescListSearch.add(currentTickerAndDesc)
                                                     }
                                                 }
-                                            }
 
-                                            getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                                                if(response.body() != null){
+                                                    val responseList = response.body()!!.result
+                                                    val currentLoadedStocks = response.body()!!.count
+
+                                                    for(i in 0 until currentLoadedStocks){
+                                                        val currentTickerAndDesc =
+                                                            StockTickerAndDesc(
+                                                                responseList[i].symbol,
+                                                                responseList[i].description,
+                                                                false
+                                                            )
+                                                        if (!stockTickerAndDescListSearch.containsStock(currentTickerAndDesc)){
+                                                            stockTickerAndDescListSearch.add(currentTickerAndDesc)
+                                                        }
+                                                    }
+                                                }
+
+                                                getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                                            }
                                         }
                                     }
                                 })
@@ -251,7 +274,7 @@ class ListActivity : AppCompatActivity() {
                 if(dy > 0){
                     if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount && !isLoading){
                         if(isInFavorite){
-                            getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, stockDTOS.filter { it.isFavourite }.toMutableList())
+                            getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
                         }
                         else if(isSearching){
                             getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
@@ -361,6 +384,7 @@ class ListActivity : AppCompatActivity() {
 
     fun hideProgressBar(){
         isLoading = false
+        swipe_layoyt.isRefreshing = isLoading
         progress_Bar.visibility = View.INVISIBLE
     }
 
@@ -378,6 +402,10 @@ class ListActivity : AppCompatActivity() {
         }
 
         for(i in currentLoadedStocks until currentLoadedStocks + stocksPerPage){
+            if(tickerAndDescList.size == stocksDTOList.size){
+                hideProgressBar()
+                break
+            }
             if(i < tickerAndDescList.size){
                 currentTicker = tickerAndDescList[i]
 
@@ -405,9 +433,11 @@ class ListActivity : AppCompatActivity() {
                     if(requestsCount > 0){
                         requestsCount--
                         if(response.errorBody() != null){
+                            requestsCount = 0
                             if(requestsCount == 0){
                                 hideProgressBar()
                             }
+                            Toast.makeText(context, "Failed connect to server\nTry again later", Toast.LENGTH_SHORT).show()
                         }
 
                         if(response.body() != null){
@@ -440,12 +470,12 @@ class ListActivity : AppCompatActivity() {
                             if(!stockTickerAndDescList.containsStock(stock)){
                                 stockTickerAndDescList.add(stock)
                             }
-
+                            adapter.notifyDataSetChanged()
                         }
                     }
                     if(requestsCount == 0){
                         hideProgressBar()
-                        stock_recycler.swapAdapter(adapter, false)
+                        //stock_recycler.swapAdapter(adapter, false)
                     }
 
                     else if(requestsCount < 0){
