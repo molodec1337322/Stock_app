@@ -38,7 +38,6 @@ class ListActivity : AppCompatActivity() {
     lateinit var favourite: Button
     lateinit var clear: ImageButton
     lateinit var stock_recycler: RecyclerView
-    lateinit var progress_Bar: ProgressBar
     lateinit var swipe_layoyt: SwipeRefreshLayout
 
     private val context: Context = this
@@ -74,7 +73,6 @@ class ListActivity : AppCompatActivity() {
         stock = btn_stocks
         clear = btn_clear_search
         favourite = btn_favourite
-        progress_Bar = progressBar
         swipe_layoyt = swipe_refresh_layout
 
         swipe_layoyt.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener{
@@ -133,6 +131,7 @@ class ListActivity : AppCompatActivity() {
                                 .enqueue(object : Callback<BestMatchingStockList>{
                                     override fun onFailure(call: Call<BestMatchingStockList>, t: Throwable) {
                                         Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
+                                        hideProgressBar()
                                     }
 
                                     override fun onResponse(
@@ -142,6 +141,9 @@ class ListActivity : AppCompatActivity() {
                                         if(search.text.toString() != ""){
                                             if(response.errorBody() != null){
                                                 Toast.makeText(context, "Failed connect to server\nTry again later", Toast.LENGTH_SHORT).show()
+                                                if(response.code() == 429){
+                                                    hideProgressBar()
+                                                }
                                             }
                                             else{
                                                 for(i in 0 until stockTickerAndDescList.size){
@@ -299,6 +301,11 @@ class ListActivity : AppCompatActivity() {
                 stockTickerAndDescList[i].isFavourite = true
             }
         }
+        for(i in 0 until stockDTOS.size){
+            if(stockDTOS[i].ticker == stock.ticker){
+                stockDTOS[i].isFavourite = true
+            }
+        }
         saveStartStockListLocal()
     }
 
@@ -379,18 +386,25 @@ class ListActivity : AppCompatActivity() {
 
     fun showProgressBar(){
         isLoading = true
-        progress_Bar.visibility = View.VISIBLE
+
+        adapterStocks!!.showLoading()
+        adapterFavourites!!.showLoading()
+        adapterSearch!!.showLoading()
     }
 
     fun hideProgressBar(){
         isLoading = false
+
+        adapterSearch!!.hideLoading()
+        adapterFavourites!!.hideLoading()
+        adapterStocks!!.hideLoading()
+
         swipe_layoyt.isRefreshing = isLoading
-        progress_Bar.visibility = View.INVISIBLE
     }
 
     fun getPriceForStocks(
         tickerAndDescList: MutableList<StockTickerAndDesc>,
-        adapter: RecyclerView.Adapter<StockAdapter.StockHolder>,
+        adapter: StockAdapter,
         stocksDTOList: MutableList<StockDTO>
     ){
         var currentTicker: StockTickerAndDesc
@@ -419,11 +433,12 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
-    fun getPrice(stock: StockTickerAndDesc, adapter: RecyclerView.Adapter<StockAdapter.StockHolder>, stocksDTOList: MutableList<StockDTO>){
+    fun getPrice(stock: StockTickerAndDesc, adapter: StockAdapter, stocksDTOList: MutableList<StockDTO>){
         retrofitService.getOpenCloseStockPrice("https://finnhub.io/api/v1/quote?symbol=${stock.ticker}&token=c19j8rf48v6prmim2iog")
             .enqueue(object : Callback<StockPrice>{
                 override fun onFailure(call: Call<StockPrice>, t: Throwable) {
                     Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
+                    hideProgressBar()
                 }
 
                 override fun onResponse(
@@ -433,11 +448,14 @@ class ListActivity : AppCompatActivity() {
                     if(requestsCount > 0){
                         requestsCount--
                         if(response.errorBody() != null){
-                            requestsCount = 0
+                            if(response.code() == 429){
+                                requestsCount = 0
+
+                                Toast.makeText(context, "Failed connect to server\nTry again later", Toast.LENGTH_SHORT).show()
+                            }
                             if(requestsCount == 0){
                                 hideProgressBar()
                             }
-                            Toast.makeText(context, "Failed connect to server\nTry again later", Toast.LENGTH_SHORT).show()
                         }
 
                         if(response.body() != null){
