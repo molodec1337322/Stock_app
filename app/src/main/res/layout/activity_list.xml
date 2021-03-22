@@ -53,6 +53,14 @@
                         android:layout_marginEnd="@dimen/spacing_normal_16"
                         android:background="@android:color/transparent"/>
 
+                    <ImageButton
+                        android:id="@+id/btn_clear_search"
+                        android:layout_width="@dimen/btn_round_size_40"
+                        android:layout_height="@dimen/btn_round_size_40"
+                        android:background="@drawable/ic_baseline_close_40"
+                        android:visibility="invisible"
+                        />
+
                 </LinearLayout>
 
             </FrameLayout>
@@ -65,7 +73,7 @@
         android:paddingTop="?actionBarSize"
         android:clipToPadding="false"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
         >
 

@@ -3,6 +3,8 @@ package com.example.yandexmobiletest.activities
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -33,6 +35,7 @@ class ListActivity : AppCompatActivity() {
     lateinit var search: EditText
     lateinit var stock: Button
     lateinit var favourite: Button
+    lateinit var clear: ImageButton
     lateinit var stock_recycler: RecyclerView
     lateinit var progress_Bar: ProgressBar
 
@@ -67,8 +70,28 @@ class ListActivity : AppCompatActivity() {
 
         search = etd_search
         stock = btn_stocks
+        clear = btn_clear_search
         favourite = btn_favourite
         progress_Bar = progressBar
+
+        search.addTextChangedListener(object : TextWatcher{
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if(s!!.length > 0){
+                    clear.visibility = View.VISIBLE
+                }
+                else{
+                    clear.visibility = View.INVISIBLE
+                }
+            }
+        })
 
         search.setOnEditorActionListener(object : TextView.OnEditorActionListener{
             override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
@@ -94,36 +117,38 @@ class ListActivity : AppCompatActivity() {
                                         call: Call<BestMatchingStockList>,
                                         response: Response<BestMatchingStockList>
                                     ) {
-                                        if(response.errorBody() != null){
-                                            Toast.makeText(context, "err", Toast.LENGTH_SHORT).show()
-                                        }
-
-                                        for(i in 0 until stockTickerAndDescList.size){
-                                            val currentTickerAndDesc = stockTickerAndDescList[i]
-                                            if(currentTickerAndDesc.ticker.toLowerCase(Locale.getDefault()).startsWith(searchString) ||
-                                                currentTickerAndDesc.description.toLowerCase(Locale.getDefault()).startsWith(searchString)){
-                                                stockTickerAndDescListSearch.add(currentTickerAndDesc)
+                                        if(search.text.toString() != ""){
+                                            if(response.errorBody() != null){
+                                                Toast.makeText(context, "err", Toast.LENGTH_SHORT).show()
                                             }
-                                        }
 
-                                        if(response.body() != null){
-                                            val responseList = response.body()!!.result
-                                            val currentLoadedStocks = response.body()!!.count
-
-                                            for(i in 0 until currentLoadedStocks){
-                                                val currentTickerAndDesc =
-                                                    StockTickerAndDesc(
-                                                        responseList[i].symbol,
-                                                        responseList[i].description,
-                                                        false
-                                                    )
-                                                if (!stockTickerAndDescListSearch.containsStock(currentTickerAndDesc)){
+                                            for(i in 0 until stockTickerAndDescList.size){
+                                                val currentTickerAndDesc = stockTickerAndDescList[i]
+                                                if(currentTickerAndDesc.ticker.toLowerCase(Locale.getDefault()).startsWith(searchString) ||
+                                                    currentTickerAndDesc.description.toLowerCase(Locale.getDefault()).startsWith(searchString)){
                                                     stockTickerAndDescListSearch.add(currentTickerAndDesc)
                                                 }
                                             }
-                                        }
 
-                                        getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                                            if(response.body() != null){
+                                                val responseList = response.body()!!.result
+                                                val currentLoadedStocks = response.body()!!.count
+
+                                                for(i in 0 until currentLoadedStocks){
+                                                    val currentTickerAndDesc =
+                                                        StockTickerAndDesc(
+                                                            responseList[i].symbol,
+                                                            responseList[i].description,
+                                                            false
+                                                        )
+                                                    if (!stockTickerAndDescListSearch.containsStock(currentTickerAndDesc)){
+                                                        stockTickerAndDescListSearch.add(currentTickerAndDesc)
+                                                    }
+                                                }
+                                            }
+
+                                            getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                                        }
                                     }
                                 })
                         }
@@ -163,6 +188,18 @@ class ListActivity : AppCompatActivity() {
         })
         favourite.setOnClickListener(View.OnClickListener {
             showFavourites()
+        })
+        clear.setOnClickListener(View.OnClickListener {
+            isSearching = false
+            requestsCount = 0
+            search.text.clear()
+            hideProgressBar()
+            if(!isInFavorite){
+                stock_recycler.swapAdapter(adapterStocks, true)
+            }
+            else{
+                stock_recycler.swapAdapter(adapterFavourites, true)
+            }
         })
 
         adapterSearch = StockAdapter(stockDTOSSearch, context)
@@ -392,7 +429,7 @@ class ListActivity : AppCompatActivity() {
                                 StockDTO(
                                     stock.ticker,
                                     stock.description,
-                                    response.body()!!.c.toString(),
+                                    String.format(Locale.US, "$%.2f", response.body()!!.c),
                                     priceChange,
                                     stock.isFavourite
                                 )
