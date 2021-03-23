@@ -41,8 +41,8 @@ object StocksStartList {
             false
         ),
         StockTickerAndDesc(
-            "UTX",
-            "United Technologies Corporation",
+            "WDC",
+            "Western Digital Corporation",
             false
         ),
         StockTickerAndDesc(

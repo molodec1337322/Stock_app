@@ -493,7 +493,6 @@ class ListActivity : AppCompatActivity() {
                     }
                     if(requestsCount == 0){
                         hideProgressBar()
-                        //stock_recycler.swapAdapter(adapter, false)
                     }
 
                     else if(requestsCount < 0){
@@ -511,14 +510,13 @@ class ListActivity : AppCompatActivity() {
 
     fun loadStartStockListLocal(){
         val tinyDB = TinyDB(context)
-        val loaded = tinyDB.getObject(StocksStartList.startStockListName, StockTickerAndDescListWrapper()::class.java)//.stockTickerAndDesc
+        val loaded = tinyDB.getObject(StocksStartList.startStockListName, StockTickerAndDescListWrapper()::class.java)
 
         if(loaded == null){
             stockTickerAndDescList = StocksStartList.startList
         }
         else{
             stockTickerAndDescList = loaded.stockTickerAndDesc!!
-
         }
     }
 }
