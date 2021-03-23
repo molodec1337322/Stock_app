@@ -77,16 +77,13 @@ class ListActivity : AppCompatActivity() {
 
         swipe_layoyt.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener{
             override fun onRefresh() {
-                if(isInFavorite){
-                    favouritesDTOS.clear()
-                    getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
-                }
-                else if(isSearching){
-                    stockDTOSSearch.clear()
+                if(isSearching){
                     getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
                 }
-                else if(!isSearching){
-                    stockDTOS.clear()
+                else if(isInFavorite){
+                    getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
+                }
+                else{
                     getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
                 }
 
@@ -275,13 +272,13 @@ class ListActivity : AppCompatActivity() {
                 super.onScrolled(recyclerView, dx, dy)
                 if(dy > 0){
                     if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount && !isLoading){
-                        if(isInFavorite){
-                            getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
-                        }
-                        else if(isSearching){
+                        if(isSearching){
                             getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
                         }
-                        else if(!isSearching){
+                        else if(isInFavorite){
+                            getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
+                        }
+                        else{
                             getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
                         }
 
