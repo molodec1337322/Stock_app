@@ -457,17 +457,17 @@ class ListActivity : AppCompatActivity() {
 
                         if(response.body() != null){
                             val priceChange: String
-                            if(String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c).toDouble() > 0){
-                                priceChange = String.format(Locale.US, "+%.2f", response.body()!!.o - response.body()!!.c) + "(" +
-                                        String.format(Locale.US, "+%.2f",  100 * (response.body()!!.o - response.body()!!.c) / response.body()!!.o) + "%)"
+                            if(String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc).toDouble() > 0){
+                                priceChange = String.format(Locale.US, "+%.2f", response.body()!!.c - response.body()!!.pc) + "(" +
+                                        String.format(Locale.US, "+%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
                             }
-                            else if(String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c).toDouble() < 0){
-                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c) + " (" +
-                                        String.format(Locale.US, "%.2f",  100 * (response.body()!!.o - response.body()!!.c) / response.body()!!.o) + "%)"
+                            else if(String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc).toDouble() < 0){
+                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc) + " (" +
+                                        String.format(Locale.US, "%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
                             }
                             else{
-                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.o - response.body()!!.c) + " (" +
-                                        String.format(Locale.US, "%.2f",  100 * (response.body()!!.o - response.body()!!.c) / response.body()!!.o) + "%)"
+                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc) + " (" +
+                                        String.format(Locale.US, "%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
                             }
 
                             val loadedStock =
