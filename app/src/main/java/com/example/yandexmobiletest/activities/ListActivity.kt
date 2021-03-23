@@ -78,13 +78,13 @@ class ListActivity : AppCompatActivity() {
         swipe_layoyt.setOnRefreshListener(object : SwipeRefreshLayout.OnRefreshListener{
             override fun onRefresh() {
                 if(isSearching){
-                    getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                    getPriceForStocksFromApi(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
                 }
                 else if(isInFavorite){
-                    getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
+                    getPriceForStocksFromApi(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
                 }
                 else{
-                    getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
+                    getPriceForStocksFromApi(stockTickerAndDescList, adapterStocks!!, stockDTOS)
                 }
 
                 showProgressBar()
@@ -124,55 +124,7 @@ class ListActivity : AppCompatActivity() {
 
                             stock_recycler.swapAdapter(adapterSearch, true)
 
-                            retrofitService.getBestMatchingTickerOrName("https://finnhub.io/api/v1/search?q=${searchString}&token=c19j8rf48v6prmim2iog")
-                                .enqueue(object : Callback<BestMatchingStockList>{
-                                    override fun onFailure(call: Call<BestMatchingStockList>, t: Throwable) {
-                                        Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
-                                        hideProgressBar()
-                                    }
-
-                                    override fun onResponse(
-                                        call: Call<BestMatchingStockList>,
-                                        response: Response<BestMatchingStockList>
-                                    ) {
-                                        if(search.text.toString() != ""){
-                                            if(response.errorBody() != null){
-                                                Toast.makeText(context, "Failed connect to server\nTry again later", Toast.LENGTH_SHORT).show()
-                                                if(response.code() == 429){
-                                                    hideProgressBar()
-                                                }
-                                            }
-                                            else{
-                                                for(i in 0 until stockTickerAndDescList.size){
-                                                    val currentTickerAndDesc = stockTickerAndDescList[i]
-                                                    if(currentTickerAndDesc.ticker.toLowerCase(Locale.getDefault()).startsWith(searchString) ||
-                                                        currentTickerAndDesc.description.toLowerCase(Locale.getDefault()).startsWith(searchString)){
-                                                        stockTickerAndDescListSearch.add(currentTickerAndDesc)
-                                                    }
-                                                }
-
-                                                if(response.body() != null){
-                                                    val responseList = response.body()!!.result
-                                                    val currentLoadedStocks = response.body()!!.count
-
-                                                    for(i in 0 until currentLoadedStocks){
-                                                        val currentTickerAndDesc =
-                                                            StockTickerAndDesc(
-                                                                responseList[i].symbol,
-                                                                responseList[i].description,
-                                                                false
-                                                            )
-                                                        if (!stockTickerAndDescListSearch.containsStock(currentTickerAndDesc)){
-                                                            stockTickerAndDescListSearch.add(currentTickerAndDesc)
-                                                        }
-                                                    }
-                                                }
-
-                                                getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
-                                            }
-                                        }
-                                    }
-                                })
+                            getBestMatchingTickerFromApi(searchString)
                         }
                         else{
                             stockDTOSSearch.clear()
@@ -186,7 +138,7 @@ class ListActivity : AppCompatActivity() {
                                     stockTickerAndDescListSearch.add(currentTickerAndDesc)
                                 }
                             }
-                            getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                            getPriceForStocksFromApi(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
                         }
                     }
                     else{
@@ -273,13 +225,13 @@ class ListActivity : AppCompatActivity() {
                 if(dy > 0){
                     if(layoutManager.childCount + layoutManager.findFirstVisibleItemPosition() >= layoutManager.itemCount && !isLoading){
                         if(isSearching){
-                            getPriceForStocks(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                            getPriceForStocksFromApi(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
                         }
                         else if(isInFavorite){
-                            getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
+                            getPriceForStocksFromApi(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
                         }
                         else{
-                            getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
+                            getPriceForStocksFromApi(stockTickerAndDescList, adapterStocks!!, stockDTOS)
                         }
 
                         showProgressBar()
@@ -370,7 +322,7 @@ class ListActivity : AppCompatActivity() {
         setButtonActive(favourite)
         setButtonInactive(stock)
 
-        getPriceForStocks(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
+        getPriceForStocksFromApi(stockTickerAndDescList.filter { it.isFavourite }.toMutableList(), adapterFavourites!!, favouritesDTOS)
 
         stock_recycler.swapAdapter(adapterFavourites, true)
     }
@@ -378,7 +330,7 @@ class ListActivity : AppCompatActivity() {
     fun getStocksList(){
         showProgressBar()
 
-        getPriceForStocks(stockTickerAndDescList, adapterStocks!!, stockDTOS)
+        getPriceForStocksFromApi(stockTickerAndDescList, adapterStocks!!, stockDTOS)
     }
 
     fun showProgressBar(){
@@ -399,7 +351,59 @@ class ListActivity : AppCompatActivity() {
         swipe_layoyt.isRefreshing = isLoading
     }
 
-    fun getPriceForStocks(
+    fun getBestMatchingTickerFromApi(searchString: String){
+        retrofitService.getBestMatchingTickerOrName("https://finnhub.io/api/v1/search?q=${searchString}&token=c19j8rf48v6prmim2iog")
+            .enqueue(object : Callback<BestMatchingStockList>{
+                override fun onFailure(call: Call<BestMatchingStockList>, t: Throwable) {
+                    Toast.makeText(context, "Failed connect to server", Toast.LENGTH_SHORT).show()
+                    hideProgressBar()
+                }
+
+                override fun onResponse(
+                    call: Call<BestMatchingStockList>,
+                    response: Response<BestMatchingStockList>
+                ) {
+                    if(search.text.toString() != ""){
+                        if(response.errorBody() != null){
+                            Toast.makeText(context, "Failed connect to server\nTry again later", Toast.LENGTH_SHORT).show()
+                            if(response.code() == 429){
+                                hideProgressBar()
+                            }
+                        }
+                        else{
+                            for(i in 0 until stockTickerAndDescList.size){
+                                val currentTickerAndDesc = stockTickerAndDescList[i]
+                                if(currentTickerAndDesc.ticker.toLowerCase(Locale.getDefault()).startsWith(searchString) ||
+                                    currentTickerAndDesc.description.toLowerCase(Locale.getDefault()).startsWith(searchString)){
+                                    stockTickerAndDescListSearch.add(currentTickerAndDesc)
+                                }
+                            }
+
+                            if(response.body() != null){
+                                val responseList = response.body()!!.result
+                                val currentLoadedStocks = response.body()!!.count
+
+                                for(i in 0 until currentLoadedStocks){
+                                    val currentTickerAndDesc =
+                                        StockTickerAndDesc(
+                                            responseList[i].symbol,
+                                            responseList[i].description,
+                                            false
+                                        )
+                                    if (!stockTickerAndDescListSearch.containsStock(currentTickerAndDesc)){
+                                        stockTickerAndDescListSearch.add(currentTickerAndDesc)
+                                    }
+                                }
+                            }
+
+                            getPriceForStocksFromApi(stockTickerAndDescListSearch, adapterSearch!!, stockDTOSSearch)
+                        }
+                    }
+                }
+            })
+    }
+
+    fun getPriceForStocksFromApi(
         tickerAndDescList: MutableList<StockTickerAndDesc>,
         adapter: StockAdapter,
         stocksDTOList: MutableList<StockDTO>
@@ -456,19 +460,7 @@ class ListActivity : AppCompatActivity() {
                         }
 
                         if(response.body() != null){
-                            val priceChange: String
-                            if(String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc).toDouble() > 0){
-                                priceChange = String.format(Locale.US, "+%.2f", response.body()!!.c - response.body()!!.pc) + "(" +
-                                        String.format(Locale.US, "+%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
-                            }
-                            else if(String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc).toDouble() < 0){
-                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc) + " (" +
-                                        String.format(Locale.US, "%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
-                            }
-                            else{
-                                priceChange = String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc) + " (" +
-                                        String.format(Locale.US, "%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
-                            }
+                            val priceChange = getPriceChange(response)
 
                             val loadedStock =
                                 StockDTO(
@@ -497,6 +489,21 @@ class ListActivity : AppCompatActivity() {
                     }
                 }
             })
+    }
+
+    fun getPriceChange(response: Response<StockPrice>): String{
+        if(String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc).toDouble() > 0){
+            return String.format(Locale.US, "+%.2f", response.body()!!.c - response.body()!!.pc) + "(" +
+                    String.format(Locale.US, "+%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
+        }
+        else if(String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc).toDouble() < 0){
+            return String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc) + " (" +
+                    String.format(Locale.US, "%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
+        }
+        else{
+            return String.format(Locale.US, "%.2f", response.body()!!.c - response.body()!!.pc) + " (" +
+                    String.format(Locale.US, "%.2f",  100 * (response.body()!!.c - response.body()!!.pc) / response.body()!!.c) + "%)"
+        }
     }
 
     fun saveStartStockListLocal(){
