@@ -1,4 +1,4 @@
-# Yandex Probation stock app
+# 
 
 
 API used: https://finnhub.io/ 
